@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import giphy from 'giphy-api';
+
 import ReactDOM from 'react-dom';
 import Gif from './components/gif';
 import GifList from './components/gif_list';
@@ -11,18 +13,28 @@ class App extends Component {
     super(props)
 
     this.state = {
-      selectedGif: "" ,
+      selectedGif: null,
       gifs: []
     }
   }
 
-  handleChange = (event) => {
-    console.log(event.target.value)
-    var xhr = fetch(`http://api.giphy.com/v1/gifs/search?q=${event.target.value}&api_key=eZ0XhlzuA5IkijSGuBBw03hH1T8lY6sI&limit=10`).then(response => response.json()).then((gifs) => {
-      this.setState({
-        gifs: gifs.data
+  selectGif = (id) => {
+    this.setState({
+      selectedGif: id
+    })
+  }
+
+  search = (query) => {
+    giphy({ apiKey: 'eZ0XhlzuA5IkijSGuBBw03hH1T8lY6sI', https: true })
+      .search({
+        q: query,
+        rating: 'g',
+        limit: 10
+      }, (err, result) => {
+        this.setState({
+          gifs: result.data
+        });
       });
-    });;
   }
 
 
@@ -30,17 +42,13 @@ class App extends Component {
     return (
       <div className="app">
         <div className="left-scene">
-          <div className="form-search form-control" onChange={this.handleChange} >
-            <SearchBar />
-          </div>
+          <SearchBar searchFunction={this.search}/>
           <div className="selected-gif">
             <Gif id={this.state.selectedGif}/>
           </div>
         </div>
-        <div className="right-scene">
-          <div className="gif-list">
-            <GifList gifs={this.state.gifs}/>
-          </div>
+        <div className="right-scene" >
+          <GifList gifs={this.state.gifs} selectGif={this.selectGif}/>
         </div>
       </div>
     )
